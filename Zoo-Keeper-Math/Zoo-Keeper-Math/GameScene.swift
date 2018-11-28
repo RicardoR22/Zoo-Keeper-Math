@@ -11,81 +11,165 @@ import GameplayKit
 
 class GameScene: SKScene {
     
-    var problemLabel : SKLabelNode?
+    var answer1 : Answer?
+    var answer2 : Answer?
+    var problemLabel = SKLabelNode(fontNamed: "Optima-Bold")
+    var arg1 : Int?
+    var arg2 : Int?
+    var ans1 = 0
+    var ans2 = 0
+    var expectingInput = true
+
     
-    private var label : SKLabelNode?
-    private var spinnyNode : SKShapeNode?
+
     
     override func didMove(to view: SKView) {
+        gameLoop()
         
-        // Get label node from scene and store it for use later
-        self.label = self.childNode(withName: "//helloLabel") as? SKLabelNode
-        if let label = self.label {
-            label.alpha = 0.0
-            label.run(SKAction.fadeIn(withDuration: 2.0))
+    }
+    
+    // The game loop. Responsible for keeping the game running
+    func gameLoop() {
+        createProblem()
+        createResponses()
+        createAnswers()
+        expectingInput = true
+    }
+    
+    
+    // Function that handles creating the math problem
+    func createProblem() {
+        // generate 2 random integers
+        arg1 = Int.random(in: 5...10)
+        arg2 = Int.random(in: 5...10)
+        
+        if let arg1 = arg1{
+            if let arg2 = arg2 {
+                // Display the problem. Integer1 + Integer2
+                problemLabel.text = ("\(arg1) + \(arg2)")
+                
+            }
         }
         
-        // Create shape node to use during mouse interaction
-        let w = (self.size.width + self.size.height) * 0.05
-        self.spinnyNode = SKShapeNode.init(rectOf: CGSize.init(width: w, height: w), cornerRadius: w * 0.3)
-        
-        if let spinnyNode = self.spinnyNode {
-            spinnyNode.lineWidth = 2.5
+        // Set properties for the label displaying the problem
+        if let view = self.view{
+            problemLabel.fontSize = 100
+            problemLabel.fontColor = .black
+            problemLabel.position.x = view.bounds.width/2 + 300
+            problemLabel.position.y = (view.bounds.height/2) + 400
+            problemLabel.zPosition = 10
             
-            spinnyNode.run(SKAction.repeatForever(SKAction.rotate(byAngle: CGFloat(Double.pi), duration: 1)))
-            spinnyNode.run(SKAction.sequence([SKAction.wait(forDuration: 0.5),
-                                              SKAction.fadeOut(withDuration: 0.5),
-                                              SKAction.removeFromParent()]))
+        }
+        if problemLabel.parent == nil {
+            addChild(problemLabel)
         }
     }
     
-    
-    func touchDown(atPoint pos : CGPoint) {
-        if let n = self.spinnyNode?.copy() as! SKShapeNode? {
-            n.position = pos
-            n.strokeColor = SKColor.green
-            self.addChild(n)
-        }
-    }
-    
-    func touchMoved(toPoint pos : CGPoint) {
-        if let n = self.spinnyNode?.copy() as! SKShapeNode? {
-            n.position = pos
-            n.strokeColor = SKColor.blue
-            self.addChild(n)
-        }
-    }
-    
-    func touchUp(atPoint pos : CGPoint) {
-        if let n = self.spinnyNode?.copy() as! SKShapeNode? {
-            n.position = pos
-            n.strokeColor = SKColor.red
-            self.addChild(n)
-        }
-    }
-    
-    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        if let label = self.label {
-            label.run(SKAction.init(named: "Pulse")!, withKey: "fadeInOut")
+    // Function that handles creating the Answers
+    func createAnswers() {
+        // Created instances of Answer class
+        if (answer1 == nil) && (answer2 == nil) {
+            answer1 = Answer(scene: self, answer: ans1)
+            answer2 = Answer(scene: self, answer: ans2)
+        } else {
+            answer1?.removeFromParent()
+            answer2?.removeFromParent()
+            answer1 = Answer(scene: self, answer: ans1)
+            answer2 = Answer(scene: self, answer: ans2)
         }
         
-        for t in touches { self.touchDown(atPoint: t.location(in: self)) }
+        
+        if let view = self.view {
+            // Actions for making clouds come down
+            
+            if let answer1 = answer1 {
+                if let answer2 = answer2 {
+                    // Set Answer properties
+                    answer1.position.x = view.bounds.width/2 + 100
+                    answer1.position.y = (view.bounds.height/2) + 200
+                    answer1.zPosition = 10
+                    answer2.position.x = view.bounds.width/2 + 500
+                    answer2.position.y = (view.bounds.height/2) + 200
+                    answer2.zPosition = 10
+
+                }
+            }
+            if answer1?.parent == nil && answer2?.parent == nil {
+                addChild(answer1!)
+                addChild(answer2!)
+            }
+        }
     }
     
-    override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
-        for t in touches { self.touchMoved(toPoint: t.location(in: self)) }
+    // Function that handles creating the responses for the question
+    func createResponses() {
+        // Chooses a random cloud to hold the correct answer
+        let correctAnswer = Int.random(in: 1...2)
+        guard let arg1 = arg1 else {
+            print("No Argument 1")
+            return
+        }
+        guard let arg2 = arg2 else {
+            print("No Argument 2")
+            return
+        }
+        
+        // Assigns the answer values to each Button
+        if correctAnswer == 1 {
+            // One gets the correct answer, the other get a random answer.
+            ans1 = arg1 + arg2
+            ans2 = Int.random(in: 5...10) + Int.random(in: 5...9)
+            if ans1 == ans2 {
+                repeat {
+                    ans2 = Int.random(in: 5...10) + Int.random(in: 5...9)
+                } while ans1 == ans2
+            }
+        } else {
+            ans2 = arg1 + arg2
+            ans1 = Int.random(in: 5...10) + Int.random(in: 5...9)
+            if ans1 == ans2 {
+                repeat {
+                    ans1 = Int.random(in: 5...10) + Int.random(in: 5...9)
+                } while ans1 == ans2
+                
+            }
+        }
     }
     
-    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-        for t in touches { self.touchUp(atPoint: t.location(in: self)) }
+    // Checks the users answer
+    func checkAnswer(node: Answer)  {
+        guard let arg1 = arg1 else {
+            print("No Argument 1")
+            return
+        }
+        guard let arg2 = arg2 else {
+            print("No Argument 2")
+            return
+        }
+        
+        if node.answerValue == arg1 + arg2 {
+            problemLabel.text = "Correct!"
+//            score += 1
+        } else {
+            problemLabel.text = "Wrong"
+//            score = 0
+            
+        }
     }
     
-    override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
-        for t in touches { self.touchUp(atPoint: t.location(in: self)) }
+    
+    // Handles the detection of a touch on a cloud
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        let touch = touches.first!
+        let location = touch.location(in: self)
+        let node = atPoint(location)
+        if node.name == "answer" && expectingInput == true {
+            expectingInput = false
+            self.checkAnswer(node: node as! Answer)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                self.gameLoop()
+            }
+        }
     }
     
-    
-    override func update(_ currentTime: TimeInterval) {
-        // Called before each frame is rendered
-    }
 }
