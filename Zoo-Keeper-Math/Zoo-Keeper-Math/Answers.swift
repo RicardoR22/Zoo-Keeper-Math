@@ -8,6 +8,7 @@
 
 import SpriteKit
 
+
 //Class for creating Answers
 class Answer: SKSpriteNode {
     var answerValue: Int
@@ -16,8 +17,10 @@ class Answer: SKSpriteNode {
     init(scene: SKScene, answer: Int) {
         let size = CGSize(width: 250, height: 150)
         self.answerValue = answer
-        super.init(texture: nil, color: .gray, size: size)
+        super.init(texture: SKTexture(imageNamed: "button"), color: UIColor.buttonDefault, size: size)
         self.name = "answer"
+        self.colorBlendFactor = 1
+        answerLabel.name = "answerLabel"
         answerLabel.fontSize = 50
         answerLabel.zPosition = 10
         answerLabel.horizontalAlignmentMode = .center

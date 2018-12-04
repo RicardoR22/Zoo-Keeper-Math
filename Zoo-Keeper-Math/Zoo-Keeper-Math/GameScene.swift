@@ -2,7 +2,7 @@
 //  GameScene.swift
 //  Zoo-Keeper-Math
 //
-//  Created by Ricardo Ro/Users/rrodriguez/Library/Saved Searches/.DockTags/Yellow.tag5.savedSearchdriguez on 11/14/18.
+//  Created by Ricardo Rodriguez on 11/14/18.
 //  Copyright © 2018 Ricardo Rodriguez. All rights reserved.
 //
 
@@ -80,8 +80,6 @@ class GameScene: SKScene {
         
         
         if let view = self.view {
-            // Actions for making clouds come down
-            
             if let answer1 = answer1 {
                 if let answer2 = answer2 {
                     // Set Answer properties
@@ -149,9 +147,11 @@ class GameScene: SKScene {
         
         if node.answerValue == arg1 + arg2 {
             problemLabel.text = "Correct!"
+            node.color = UIColor.buttonCorrect
 //            score += 1
         } else {
             problemLabel.text = "Wrong"
+            node.color = UIColor.buttonWrong
 //            score = 0
             
         }
@@ -162,9 +162,12 @@ class GameScene: SKScene {
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         let touch = touches.first!
         let location = touch.location(in: self)
-        let node = atPoint(location)
-        if node.name == "answer" && expectingInput == true {
+        var node = atPoint(location)
+        if (node.name == "answer" || node.name == "answerLabel") && expectingInput == true {
             expectingInput = false
+            if node.name == "answerLabel" {
+                node = node.parent!
+            }
             self.checkAnswer(node: node as! Answer)
             DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
                 self.gameLoop()
